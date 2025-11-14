@@ -7,31 +7,77 @@ from .models import (
     RegistroServico
 )
 
-class RegistroSerializer(serializers.ModelSerializer):
+# =========================
+# SERIALIZER DETALHADO
+# =========================
+class RegistroDetalhadoSerializer(serializers.ModelSerializer):
+    emissao = serializers.SerializerMethodField()
+    biometria = serializers.SerializerMethodField()
+    informacao = serializers.SerializerMethodField()
+    servico = serializers.SerializerMethodField()
+
     class Meta:
         model = Registro
-        fields = '__all__'
+        fields = [
+            'id',
+            'data_hora_envio',
+            'login_atendente',
+            'id_local_posto',
+            'tipo_atendimento',
+            'emissao',
+            'biometria',
+            'informacao',
+            'servico',
+        ]
 
-class EmissaoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistroEmissao
-        fields = '__all__'
+    # -------- EMISSÃO --------
+    def get_emissao(self, obj):
+        try:
+            r = RegistroEmissao.objects.get(registro=obj)
+            return {
+                "numero_cartao": r.numero_cartao,
+                "tipo_cartao": r.tipo_cartao,
+            }
+        except RegistroEmissao.DoesNotExist:
+            return None
 
-class BiometriaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistroBiometria
-        fields = '__all__'
+    # -------- BIOMETRIA --------
+    def get_biometria(self, obj):
+        try:
+            r = RegistroBiometria.objects.get(registro=obj)
+            return {
+                "cpf": r.cpf,
+                "numero_cartao": r.numero_cartao,
+                "tipo_cartao": r.tipo_cartao,
+                "tipo_biometria": r.tipo_biometria,
+                "descricao": r.descricao,
+            }
+        except RegistroBiometria.DoesNotExist:
+            return None
 
-class InformacaoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistroInformacao
-        fields = '__all__'
+    # -------- INFORMAÇÃO --------
+    def get_informacao(self, obj):
+        try:
+            r = RegistroInformacao.objects.get(registro=obj)
+            return {
+                "tipo_informacao": r.tipo_informacao,
+            }
+        except RegistroInformacao.DoesNotExist:
+            return None
 
-class ServicoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = RegistroServico
-        fields = '__all__'
+    # -------- SERVIÇO --------
+    def get_servico(self, obj):
+        try:
+            r = RegistroServico.objects.get(registro=obj)
+            return {
+                "tipo_servico": r.tipo_servico,
+            }
+        except RegistroServico.DoesNotExist:
+            return None
 
+# =========================
+# SERIALIZER LISTAGEM SIMPLES
+# =========================
 class RegistroListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Registro
@@ -40,5 +86,5 @@ class RegistroListSerializer(serializers.ModelSerializer):
             'data_hora_envio',
             'login_atendente',
             'id_local_posto',
-            'tipo_atendimento'
+            'tipo_atendimento',
         ]

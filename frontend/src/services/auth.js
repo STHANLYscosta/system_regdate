@@ -3,7 +3,7 @@ import api from './api';
 // Login - Recebe username e password, retorna tokens
 export const login = async (username, password) => {
   try {
-    const response = await api.post('/token/', {
+    const response = await api.post('token/', {
       username,
       password,
     });
@@ -26,6 +26,6 @@ export const logout = () => {
 
 // Verifica se está autenticado
 export const isAuthenticated = () => {
-  const token = localStorage.getItem('access_token');
+  const token = localStorage.getItem('token_access');
   return !!token; // Retorna true se tiver token
 };

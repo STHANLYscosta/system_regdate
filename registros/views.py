@@ -9,6 +9,17 @@ from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from .models import Registro
 from .serializers import RegistroListSerializer
+from rest_framework.generics import RetrieveAPIView, ListAPIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import RegistroDetalhadoSerializer, RegistroListSerializer
+from django.db.models import Q
+from django.utils.dateparse import parse_date
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import RegistroDetalhadoSerializer
+from .pagination import RegistroPagination
+
+
 # ------------------------------------
 # LOGIN SIMPLES
 # ------------------------------------
@@ -84,7 +95,81 @@ class RegistrarAtendimento(APIView):
 
         return Response({"status": "OK", "id_registro": registro.id}, status=201)
 
+
+class ListarRegistros(ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = RegistroDetalhadoSerializer
+    pagination_class = RegistroPagination
+
+    def get_queryset(self):
+        queryset = Registro.objects.all().order_by('-data_hora_envio')
+
+        params = self.request.query_params
+
+        tipo = params.get('tipo')             # EMISSAO, BIOMETRIA, etc.
+        cartao = params.get('cartao')         # número (ou parte) do cartão
+        cpf = params.get('cpf')               # cpf do usuário
+        atendente = params.get('atendente')   # login do atendente
+        data_ini = params.get('data_ini')     # formato: YYYY-MM-DD
+        data_fim = params.get('data_fim')     # formato: YYYY-MM-DD
+
+        # Filtro por tipo de atendimento
+        if tipo:
+            queryset = queryset.filter(tipo_atendimento=tipo)
+
+        # Filtro por atendente
+        if atendente:
+            queryset = queryset.filter(login_atendente__icontains=atendente)
+
+        # Filtro por intervalo de datas (data_hora_envio)
+        if data_ini:
+            dt_ini = parse_date(data_ini)
+            if dt_ini:
+                queryset = queryset.filter(data_hora_envio__date__gte=dt_ini)
+
+        if data_fim:
+            dt_fim = parse_date(data_fim)
+            if dt_fim:
+                queryset = queryset.filter(data_hora_envio__date__lte=dt_fim)
+
+        # Filtro por cartão (em emissão ou biometria)
+        if cartao:
+            queryset = queryset.filter(
+                Q(registroemissao__numero_cartao__icontains=cartao) |
+                Q(registrobiometria__numero_cartao__icontains=cartao)
+            ).distinct()
+
+        # Filtro por CPF (biometria)
+        if cpf:
+            queryset = queryset.filter(
+                registrobiometria__cpf__icontains=cpf
+            ).distinct()
+
+        return queryset
+
+
+
 class ListarRegistros(ListAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Registro.objects.all().order_by('-data_hora_envio')
     serializer_class = RegistroListSerializer
+
+
+
+class DetalheRegistro(RetrieveAPIView):
+  permission_classes = [IsAuthenticated]
+  queryset = Registro.objects.all()
+  serializer_class = RegistroDetalhadoSerializer
+
+
+  
+from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import RegistroDetalhadoSerializer
+
+
+
+class DetalheRegistro(RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Registro.objects.all()
+    serializer_class = RegistroDetalhadoSerializer
