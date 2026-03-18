@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../services/auth';
+import { login, trocarSenhaPrimeiroAcesso } from '../services/auth';
 
 export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isPrimeiroAcesso, setIsPrimeiroAcesso] = useState(false);
   
   const navigate = useNavigate();
 
@@ -16,12 +18,29 @@ export default function Login() {
     setLoading(true);
 
     try {
-      await login(username, password);
-      // Login bem-sucedido, redireciona para seleção
-      navigate('/selecionar');
+      if (isPrimeiroAcesso) {
+        if (password === newPassword) {
+            setError('A nova senha não pode ser igual à senha provisória.');
+            setLoading(false);
+            return;
+        }
+        await trocarSenhaPrimeiroAcesso(username, password, newPassword);
+        // Após trocar, loga normalmente
+        await login(username, newPassword);
+        navigate('/selecionar');
+      } else {
+        await login(username, password);
+        // Login bem-sucedido, redireciona para seleção
+        navigate('/selecionar');
+      }
     } catch (err) {
-      console.error('Erro no login:', err);
-      setError('Usuário ou senha incorretos');
+      if (err.message === "PRIMEIRO_ACESSO") {
+        setIsPrimeiroAcesso(true);
+        setError('Por segurança, você deve alterar sua senha no primeiro acesso.');
+      } else {
+        console.error('Erro no login/troca de senha:', err);
+        setError(err.response?.data?.erro || 'Usuário ou senha incorretos');
+      }
     } finally {
       setLoading(false);
     }
@@ -36,55 +55,69 @@ export default function Login() {
             Sistema de Atendimento
           </h1>
           <p className="text-gray-600">
-            Faça login para continuar
+            {isPrimeiroAcesso ? 'Defina sua nova senha de acesso' : 'Faça login para continuar'}
           </p>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Campo Usuário */}
-          <div>
-            <label 
-              htmlFor="username" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Usuário
-            </label>
-            <input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              placeholder="Digite seu usuário"
-              required
-              disabled={loading}
-            />
-          </div>
+          {!isPrimeiroAcesso && (
+             <div>
+               <label className="block text-sm font-medium text-gray-700 mb-2">Usuário</label>
+               <input
+                 type="text"
+                 value={username}
+                 onChange={(e) => setUsername(e.target.value)}
+                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                 placeholder="Digite seu usuário"
+                 required
+                 disabled={loading}
+               />
+             </div>
+          )}
+          {isPrimeiroAcesso && (
+              <div className="text-sm text-gray-600 font-medium mb-4">
+                 Usuário: <span className="font-bold text-gray-900">{username}</span>
+              </div>
+          )}
 
           {/* Campo Senha */}
           <div>
-            <label 
-              htmlFor="password" 
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Senha
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+               {isPrimeiroAcesso ? 'Senha Atual (Provisória)' : 'Senha'}
             </label>
             <input
-              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-              placeholder="Digite sua senha"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder={isPrimeiroAcesso ? "Digite a senha fornecida" : "Digite sua senha"}
               required
-              disabled={loading}
+              disabled={loading || isPrimeiroAcesso}
             />
           </div>
 
+          {/* Campo Nova Senha */}
+          {isPrimeiroAcesso && (
+             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Nova Senha</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                  placeholder="Digite sua nova senha"
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+             </div>
+          )}
+
           {/* Mensagem de Erro */}
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+            <div className={`border px-4 py-3 rounded-lg text-sm ${isPrimeiroAcesso && error.includes('segurança') ? 'bg-blue-50 border-blue-200 text-blue-800' : 'bg-red-50 border-red-200 text-red-700'}`}>
               {error}
             </div>
           )}
@@ -93,9 +126,9 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 disabled:opacity-50"
           >
-            {loading ? 'Entrando...' : 'Entrar'}
+            {loading ? 'Processando...' : (isPrimeiroAcesso ? 'Confirmar e Entrar' : 'Entrar')}
           </button>
         </form>
 

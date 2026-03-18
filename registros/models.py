@@ -21,6 +21,8 @@ class Usuario(AbstractUser):
     
     nivel_acesso = models.CharField(max_length=20, choices=NIVEIS_ACESSO, default='ATENDENTE')
     primeiro_acesso = models.BooleanField(default=True)
+    foto_perfil = models.ImageField(upload_to='perfis/', null=True, blank=True)
+    foto_capa = models.ImageField(upload_to='capas/', null=True, blank=True)
     
     # O AbstractUser já traz: username (que será o login), password, is_active (para Status A/I), date_joined (data_criacao)
     
@@ -41,19 +43,37 @@ class RegistroAcesso(models.Model):
         return f"{self.data_hora} - {self.login_tentado} - {status}"
 
 
+class LogAlteracaoUsuario(models.Model):
+    quem_alterou = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='logs_gerados')
+    usuario_afetado = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='logs_sofridos')
+    data_hora = models.DateTimeField(auto_now_add=True)
+    descricao = models.TextField()
+
+    def __str__(self):
+        return f"{self.data_hora.strftime('%d/%m/%Y %H:%M')} - {self.quem_alterou} modificou {self.usuario_afetado}"
+
+
 # ==========================================
 # 2. MODELOS DE POSTO E LOTAÇÃO
 # ==========================================
 
 class Posto(models.Model):
+    TIPO_POSTO_CHOICES = [
+        ('FIXO', 'Fixo'),
+        ('ITINERANTE', 'Itinerante'),
+        ('VIRTUAL', 'Virtual'),
+    ]
     nome_posto = models.CharField(max_length=100)
     endereco = models.TextField(null=True, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     responsavel = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='postos_gerenciados')
     status = models.CharField(max_length=1, choices=[('A', 'Ativo'), ('I', 'Inativo')], default='A')
+    tipo = models.CharField(max_length=20, choices=TIPO_POSTO_CHOICES, default='FIXO')
     criado_em = models.DateTimeField(auto_now_add=True)
     criado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, related_name='postos_criados')
+    atualizado_em = models.DateTimeField(auto_now=True)
+    atualizado_por = models.ForeignKey(Usuario, on_delete=models.SET_NULL, null=True, blank=True, related_name='postos_atualizados')
 
     def __str__(self):
         return self.nome_posto
@@ -118,9 +138,16 @@ class RegistroEmissao(models.Model):
         ('SINETRAM', 'Sinetram'),
         ('P SOCIAL', 'P. Social'),
     ]
+    VIAS_CHOICES = [
+        ('1ª', '1ª Via'),
+        ('2ª', '2ª Via'),
+        ('3ª+', '3ª Via ou mais'),
+    ]
     registro = models.OneToOneField(Registro, on_delete=models.CASCADE, primary_key=True)
     nome = models.CharField(max_length=150)
     tipo_cartao = models.CharField(max_length=30, choices=TIPOS_CARTAO_CHOICES)
+    cartao_impresso = models.CharField(max_length=150, null=True, blank=True)
+    via = models.CharField(max_length=10, choices=VIAS_CHOICES, null=True, blank=True, default='1ª')
     observacao = models.CharField(max_length=100, null=True, blank=True)
 
 

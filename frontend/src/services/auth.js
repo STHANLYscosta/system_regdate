@@ -1,9 +1,18 @@
 import api from './api';
 
+export const trocarSenhaPrimeiroAcesso = async (login_str, senha_atual, nova_senha) => {
+  const response = await api.post('primeiro-acesso/', {
+    login: login_str,
+    senha_atual,
+    nova_senha
+  });
+  return response.data;
+};
+
 export const login = async (username, password) => {
   try {
-    // Note que usamos 'api/login/' para bater na nossa nova rota do Django
-    const response = await api.post('api/login/', {
+    // Note que usamos 'login/' para bater na nossa rota do Django (baseURL já tem /api/)
+    const response = await api.post('login/', {
       login: username,
       senha: password,
     });

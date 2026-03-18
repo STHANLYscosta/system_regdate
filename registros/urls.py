@@ -35,7 +35,9 @@ from .views import (
     RegistrarAtendimentoView,
     ListarRegistros,
     DetalheRegistro,
-    DashboardStatsView  # <--- ADICIONE ESTA LINHA AQUI
+    DashboardStatsView,  # <--- ADICIONE ESTA LINHA AQUI
+    AtualizarPermissoesView,
+    UserProfileView
 )
 
 urlpatterns = [
@@ -49,15 +51,15 @@ urlpatterns = [
     # ==========================================
     # AUTENTICAÇÃO E ACESSO
     # ==========================================
-    path('api/login/', LoginView.as_view(), name='login'),
-    path('api/primeiro-acesso/', TrocarSenhaPrimeiroAcessoView.as_view(), name='primeiro_acesso'),
+    path('login/', LoginView.as_view(), name='login'),
+    path('primeiro-acesso/', TrocarSenhaPrimeiroAcessoView.as_view(), name='primeiro_acesso'),
 
     # ==========================================
     # GESTÃO DE USUÁRIOS E POSTOS (GERENTE/SUPERVISOR)
     # ==========================================
-    path('api/usuarios/', GerenciarUsuariosView.as_view(), name='gerenciar_usuarios'),
-    path('api/usuarios/transferir/', TransferirPostoView.as_view(), name='transferir_posto'),
-    path('api/postos/', ListarPostosView.as_view(), name='listar_postos'),
+    path('usuarios/', GerenciarUsuariosView.as_view(), name='gerenciar_usuarios'),
+    path('usuarios/transferir/', TransferirPostoView.as_view(), name='transferir_posto'),
+    path('postos/', ListarPostosView.as_view(), name='listar_postos'),
     
     # Rotas legadas de usuários (mantidas por segurança)
     path("usuarios/", UsuariosListCreate.as_view()),
@@ -66,7 +68,7 @@ urlpatterns = [
     # ==========================================
     # ATENDIMENTOS E REGISTROS (FORMULÁRIOS)
     # ==========================================
-    path('api/registrar/', RegistrarAtendimentoView.as_view(), name='registrar_atendimento'),
+    path('registrar/', RegistrarAtendimentoView.as_view(), name='registrar_atendimento'),
     path('registros/', ListarRegistros.as_view()),
     path("registros/<int:pk>/", DetalheRegistro.as_view()),
 
@@ -79,5 +81,7 @@ urlpatterns = [
     path("dashboard/atendente/", DashboardPorAtendente.as_view()),
     path("dashboard/dia/", DashboardPorDia.as_view()),
     path("dashboard/hora/", DashboardPorHora.as_view()),
-    path('api/dashboard-stats/', DashboardStatsView.as_view(), name='dashboard_stats')
+    path('dashboard-stats/', DashboardStatsView.as_view(), name='dashboard_stats'),
+    path('permissoes/', AtualizarPermissoesView.as_view(), name='atualizar_permissoes'),
+    path('perfil/', UserProfileView.as_view(), name='user_profile'),
 ]
