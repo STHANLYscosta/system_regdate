@@ -1,1 +1,190 @@
 @import "tailwindcss";
+
+/* ============================================================
+   Design System — Paleta Teal/Dark
+   Cores Primárias: #0B8185, #1F5F61, #36544F, #403831, #30261C
+   ============================================================ */
+
+@layer base {
+  :root {
+    --teal-100: #E0F5F5;
+    --teal-200: #B3E4E5;
+    --teal-300: #7BCDD0;
+    --teal-400: #3EB1B5;
+    --teal-500: #0B8185;
+    --teal-600: #1F5F61;
+    --teal-700: #36544F;
+    --dark-800: #403831;
+    --dark-900: #30261C;
+    --dark-950: #1E1812;
+
+    /* Tokens semânticos */
+    --color-primary: var(--teal-500);
+    --color-primary-hover: var(--teal-600);
+    --color-primary-deep: var(--teal-700);
+    --color-bg-dark: var(--dark-900);
+    --color-bg-deeper: var(--dark-950);
+    --color-surface: rgba(255,255,255,0.05);
+    --color-surface-light: rgba(255,255,255,0.10);
+    --color-border: rgba(255,255,255,0.12);
+    --color-text-primary: #F0FAFA;
+    --color-text-secondary: rgba(176, 224, 225, 0.75);
+    --color-text-muted: rgba(176, 224, 225, 0.45);
+
+    /* Sombras */
+    --shadow-teal: 0 4px 24px rgba(11, 129, 133, 0.35);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  html, body {
+    @apply antialiased;
+    background-color: var(--dark-900);
+    color: var(--color-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Scrollbar customizada */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--dark-950); }
+  ::-webkit-scrollbar-thumb { background: var(--teal-600); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--teal-500); }
+}
+
+/* ============================================================
+   Utility Classes Globais (complementam o Tailwind)
+   ============================================================ */
+@layer utilities {
+  /* Fundo padrão páginas internas */
+  .page-bg {
+    background-color: #1A1510;
+    min-height: 100vh;
+  }
+
+  /* Glass effect */
+  .glass {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.10);
+  }
+
+  .glass-dark {
+    background: rgba(30, 24, 18, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(11,129,133,0.25);
+  }
+
+  /* Botão primário */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--teal-500), var(--teal-600));
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    border-radius: 0.875rem;
+    padding: 0.875rem 1.5rem;
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-teal);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--teal-400), var(--teal-500));
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(11, 129, 133, 0.5);
+  }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
+
+  /* Input escuro */
+  .input-dark {
+    width: 100%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 0.875rem;
+    padding: 0.875rem 1.125rem;
+    color: var(--color-text-primary);
+    font-size: 0.925rem;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+  .input-dark::placeholder { color: var(--color-text-muted); }
+  .input-dark:focus {
+    border-color: var(--teal-400);
+    background: rgba(11,129,133,0.10);
+    box-shadow: 0 0 0 3px rgba(11,129,133,0.18);
+  }
+  .input-dark:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Header interno padrão */
+  .app-header {
+    background: rgba(30, 24, 18, 0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(11,129,133,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  /* Card interno */
+  .card-dark {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1.25rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-dark:hover {
+    border-color: rgba(11,129,133,0.35);
+    box-shadow: 0 8px 32px rgba(11,129,133,0.12);
+  }
+
+  /* Label padrão */
+  .label-dark {
+    display: block;
+    font-size: 0.775rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.5rem;
+  }
+
+  /* Badge de cargo */
+  .badge-teal {
+    background: rgba(11,129,133,0.18);
+    color: var(--teal-300);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid rgba(11,129,133,0.3);
+  }
+}
+
+/* ============================================================
+   Animações
+   ============================================================ */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-teal {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(11,129,133,0.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(11,129,133,0); }
+}
+.animate-fade-up {
+  animation: fadeSlideUp 0.5s ease forwards;
+}
+.anim-pulse-teal {
+  animation: pulse-teal 2s infinite;
+}
+
+/* Partículas de fundo - CSS puro */
+.bg-mesh {
+  background-color: #30261C;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 20%, rgba(11,129,133,0.22) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(31,95,97,0.20) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(54,84,79,0.12) 0%, transparent 65%);
+}

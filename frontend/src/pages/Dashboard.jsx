@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import MultiSelect from '../components/MultiSelect';
 import {
@@ -13,6 +14,7 @@ const TIPOS_OPTIONS = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [postosOptions, setPostosOptions] = useState([]);
   const [atendentesOptions, setAtendentesOptions] = useState([]);
@@ -106,19 +108,31 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Title */}
-        <div className="flex items-center gap-4">
-           <button 
-             onClick={() => window.history.back()}
-             className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-900 shadow-sm transition-all hover:scale-105 active:scale-95 group"
-           >
-              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-           </button>
-           <div>
-             <h1 className="text-3xl font-black text-gray-900 tracking-tight">Analytics & Produtividade</h1>
-             <p className="text-gray-500 text-sm mt-0.5 font-medium">Extração livre de métricas da corporação e monitoramento comportamental em tempo real.</p>
-           </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+             <button 
+               onClick={() => window.history.back()}
+               className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-900 shadow-sm transition-all hover:scale-105 active:scale-95 group"
+             >
+                <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+             </button>
+             <div>
+               <h1 className="text-3xl font-black text-gray-900 tracking-tight">Analytics & Produtividade</h1>
+               <p className="text-gray-500 text-sm mt-0.5 font-medium">Extração livre de métricas da corporação e monitoramento comportamental em tempo real.</p>
+             </div>
+          </div>
+          <button 
+            type="button"
+            onClick={() => window.location.href = '/mapa-calor'}
+            className="flex items-center gap-2 bg-gradient-to-r from-[var(--teal-600)] to-[var(--teal-500)] text-white px-5 py-3 rounded-2xl font-bold shadow-lg shadow-[var(--teal-500)]/30 hover:scale-105 active:scale-95 transition-all outline-none focus:ring-4 focus:ring-[var(--teal-500)]/20"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Mapa de Calor Analítico
+          </button>
         </div>
 
         {/* Toolbar de Filtros */}

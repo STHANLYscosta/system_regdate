@@ -21,6 +21,10 @@ export const login = async (username, password) => {
       localStorage.setItem("token_access", response.data.token_access);
       localStorage.setItem("token_refresh", response.data.token_refresh);
       localStorage.setItem("nivel_acesso", response.data.nivel_acesso); 
+      // Salva o nome e o posto retornado pelo backend
+      localStorage.setItem("nome", response.data.nome_completo || response.data.nome || username);
+      localStorage.setItem("posto_atual", response.data.posto_atual || 'Central');
+      localStorage.setItem("posto_id", response.data.posto_atual_id || '');
     }
     
     return response.data;

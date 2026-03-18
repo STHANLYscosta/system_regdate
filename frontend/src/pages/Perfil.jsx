@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { logout } from '../services/auth';
 
 export default function Perfil() {
   const [perfil, setPerfil] = useState(null);
@@ -35,197 +36,208 @@ export default function Perfil() {
       await api.put('perfil/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
-      // Recarrega os dados pra mostrar a foto renderizada
       await carregarPerfil();
     } catch (err) {
-      alert("Erro ao enviar a imagem. Tente novamente.");
+      console.error(err);
+      setErrorMsg("Erro ao atualizar imagem.");
     } finally {
       setUploading(false);
     }
   };
 
+  const [passwordForm, setPasswordForm] = useState({ s_atual: '', s_nova: '' });
+  const [passMsg, setPassMsg] = useState('');
+  
+  const handleTrocaSenha = async (e) => {
+    e.preventDefault();
+    try {
+      await api.put('perfil/', {  
+        senha_atual: passwordForm.s_atual,
+        nova_senha: passwordForm.s_nova
+      });
+      setPassMsg("Senha alterada com sucesso!");
+      setPasswordForm({ s_atual: '', s_nova: '' });
+      setTimeout(() => setPassMsg(''), 3000);
+    } catch (err) {
+      setPassMsg(err.response?.data?.erro || "Erro ao trocar a senha.");
+    }
+  };
+
   if (isLoading && !perfil) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen page-bg flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[var(--teal-500)] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
-  if (errorMsg) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-         <div className="bg-white p-8 rounded-xl shadow border border-red-100 text-center max-w-md w-full">
-            <svg className="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Ops! Ocorreu um erro</h2>
-            <p className="text-gray-600 mb-6">{errorMsg}</p>
-            <button 
-              onClick={() => navigate('/selecionar')}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
-            >
-              Voltar ao Início
-            </button>
-         </div>
-      </div>
-    );
-  }
-
-  // Define cores com base no nível
-  const nivelConfig = {
-    'GERENTE': { cor: 'orange', texto: 'Gerente' },
-    'SUPERVISOR': { cor: 'purple', texto: 'Supervisor' },
-    'ATENDENTE_II': { cor: 'blue', texto: 'Atendente II' },
-    'ATENDENTE': { cor: 'green', texto: 'Atendente' },
-  };
-
-  const currentNivelConfig = nivelConfig[perfil?.nivel_acesso] || { cor: 'gray', texto: perfil?.nivel_acesso };
-
-  // Retorna as iniciais do nome para o Avatar
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const splitName = name.split(' ');
-    if (splitName.length > 1) {
-       return `${splitName[0][0]}${splitName[splitName.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
+  const capaUrl = perfil?.foto_capa ? (perfil.foto_capa.startsWith('http') ? perfil.foto_capa : `http://${window.location.hostname}:8000${perfil.foto_capa}`) : 'https://images.unsplash.com/photo-1557683316-973673baf926?q=80&w=2000&auto=format&fit=crop';
+  const perfilUrl = perfil?.foto_perfil ? (perfil.foto_perfil.startsWith('http') ? perfil.foto_perfil : `http://${window.location.hostname}:8000${perfil.foto_perfil}`) : null;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4 sm:px-6 lg:px-8 relative">
-      {uploading && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center backdrop-blur-sm">
-          <div className="bg-white p-6 rounded-xl flex items-center gap-4 shadow-xl">
-             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-             <span className="font-medium text-gray-800">Processando imagem...</span>
-          </div>
-        </div>
-      )}
-      
-      <div className="max-w-3xl mx-auto">
-        
-        {/* Header Voltar */}
-        <div className="mb-8 flex items-center gap-4">
-           <button 
-             onClick={() => window.history.back()}
-             className="p-2 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-900 shadow-sm transition-colors group"
-           >
-              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    <div className="min-h-screen page-bg pb-20">
+      {/* Header Fixo */}
+      <header className="app-header">
+        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button onClick={() => window.history.back()}
+              className="p-2 rounded-xl transition-all hover:scale-105 active:scale-95 group"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}>
+              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" style={{ color: 'var(--teal-300)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-           </button>
-           <h1 className="text-2xl font-bold text-gray-900">Meu Perfil</h1>
-        </div>
-
-        {/* Card Principal */}
-        <div className="bg-white border border-gray-100 rounded-3xl shadow-sm overflow-hidden">
-          
-          {/* Fundo Customizado e Avatar */}
-          <div 
-             className={`h-40 bg-gradient-to-r ${perfil.foto_capa ? '' : `from-${currentNivelConfig.cor}-500 to-${currentNivelConfig.cor}-700`} relative group transition-all duration-300`} 
-             style={perfil.foto_capa ? { backgroundImage: `url(${perfil.foto_capa})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
-          >
-             <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSI+PC9yZWN0Pgo8cGF0aCBkPSJNMCAwTDggOFoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg==')]"></div>
-             
-             {/* Upload Capa Botão Hover */}
-             <label className="absolute top-4 right-4 bg-white/90 p-2.5 rounded-xl shadow-md backdrop-blur-sm cursor-pointer hover:bg-white transition opacity-0 group-hover:opacity-100 flex items-center gap-2 text-sm font-semibold text-gray-800 border border-gray-100/50 hover:scale-105 active:scale-95">
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadImg('foto_capa', e.target.files[0])} />
-                <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                Alterar Capa
-             </label>
+            </button>
+            <img src="/src/assets/images/logo.png" alt="Logo" className="w-8 h-8 object-contain" onError={(e) => e.target.style.display='none'} />
+            <h1 className="text-lg font-bold" style={{ color: 'var(--color-text-primary)' }}>
+              Meu Perfil
+            </h1>
           </div>
+          <button onClick={() => { logout(); navigate('/'); }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+            style={{ background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+            Sair
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-4xl mx-auto mt-8 px-6">
+        {errorMsg && (
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* Card Principal - Capa e Foto */}
+        <div className="card-dark overflow-hidden relative">
           
-          <div className="px-6 sm:px-10 pb-10">
-            {/* Avatar flutuante com suporte de Upload */}
-            <div className={`relative -mt-16 w-32 h-32 mx-auto sm:mx-0 rounded-2xl bg-white p-1.5 shadow-lg border border-gray-200 flex items-center justify-center group/avatar`}>
-              
-              {perfil.foto_perfil ? (
-                 <img src={perfil.foto_perfil} alt="Avatar do Usuário" className="w-full h-full rounded-xl object-cover" />
-              ) : (
-                 <div className={`w-full h-full rounded-xl bg-gradient-to-br from-${currentNivelConfig.cor}-50 to-${currentNivelConfig.cor}-100 flex items-center justify-center text-4xl font-bold text-${currentNivelConfig.cor}-700`}>
-                   {getInitials(perfil.nome_completo || perfil.username)}
-                 </div>
-              )}
-
-              {/* Upload Foto Overlay */}
-              <label 
-                className="absolute -bottom-2 -right-2 bg-white p-2.5 rounded-full shadow-md border border-gray-100 cursor-pointer hover:bg-gray-50 flex items-center justify-center hover:scale-110 active:scale-95 transition-all outline-4 outline-white outline z-10 text-gray-700 hover:text-blue-600" 
-                title="Alterar Foto de Perfil"
-              >
-                <input type="file" className="hidden" accept="image/*" onChange={(e) => handleUploadImg('foto_perfil', e.target.files[0])} />
-                <svg className="w-5 h-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.1)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </label>
+          {/* Capa */}
+          <div className="h-56 w-full relative group">
+            <img src={capaUrl} alt="Capa" className="w-full h-full object-cover opacity-80" />
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+               <label className="cursor-pointer bg-white/10 backdrop-blur-md border border-white/20 text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center gap-2 hover:bg-white/20 transition">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  Alterar Capa
+                  <input type="file" className="hidden" accept="image/*" onChange={(e)=>handleUploadImg('foto_capa', e.target.files[0])} disabled={uploading} />
+               </label>
             </div>
+            {/* Gradiente de overlay visual inferior da capa */}
+            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--dark-900)] to-transparent pointer-events-none"></div>
+          </div>
 
-            <div className="mt-6 flex flex-col sm:flex-row gap-6 justify-between items-start">
-               <div>
-                  <h2 className="text-2xl font-bold text-gray-900 leading-tight">
-                    {perfil.nome_completo || 'Sem Nome Cadastrado'}
+          {/* Dados do Perfil e Avatar Flutuante */}
+          <div className="px-8 pb-10 relative">
+             <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6 -mt-16">
+                
+                {/* Avatar */}
+                <div className="relative group shrink-0">
+                  <div className="w-32 h-32 rounded-3xl overflow-hidden border-4 border-[var(--dark-900)] shadow-2xl bg-[var(--dark-800)] flex items-center justify-center">
+                    {perfilUrl ? (
+                      <img src={perfilUrl} alt="Perfil" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl font-black text-white/50">{perfil?.nome_completo?.[0]?.toUpperCase()}</span>
+                    )}
+                  </div>
+                  <label className="absolute bottom-2 right-2 p-2.5 bg-[var(--teal-500)] text-white rounded-xl shadow-lg cursor-pointer hover:scale-110 active:scale-95 transition-transform z-10 border-2 border-[var(--dark-900)]">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e)=>handleUploadImg('foto_perfil', e.target.files[0])} disabled={uploading} />
+                  </label>
+                </div>
+
+                {/* Info Textual */}
+                <div className="text-center sm:text-left pt-2 pb-1">
+                  <h2 className="text-3xl font-black" style={{ color: 'var(--color-text-primary)' }}>
+                    {perfil?.nome_completo || perfil?.username}
                   </h2>
-                  <div className="flex items-center gap-2 mt-2">
-                     <span className={`px-3 py-1 rounded-full text-sm font-semibold border bg-${currentNivelConfig.cor}-50 text-${currentNivelConfig.cor}-700 border-${currentNivelConfig.cor}-200`}>
-                        {currentNivelConfig.texto}
-                     </span>
-                     <span className="text-gray-500 text-sm flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        {perfil.username}
-                     </span>
-                  </div>
-               </div>
-               
-               {/* Card de Atendimentos Totais */}
-               <div className="w-full sm:w-auto bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-4 rounded-2xl flex items-center gap-4 min-w-[200px] shadow-sm">
-                  <div className="p-3 bg-white rounded-xl shadow-sm text-blue-600">
-                     <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                     </svg>
-                  </div>
-                  <div>
-                    <div className="text-xs text-blue-600 font-semibold uppercase tracking-wider">Total Atendimentos</div>
-                    <div className="text-2xl font-black text-gray-900">{perfil.total_atendimentos.toLocaleString()}</div>
-                  </div>
-               </div>
-            </div>
+                  <p className="text-base font-medium mt-1" style={{ color: 'var(--teal-300)' }}>
+                    @{perfil?.username}
+                  </p>
+                </div>
 
-            <div className="h-px bg-gray-100 w-full my-8"></div>
-
-            {/* Grid de Informações */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-12">
-               <div>
-                 <label className="text-sm text-gray-500 font-medium">CPF</label>
-                 <div className="mt-1 font-semibold text-gray-900 bg-gray-50/50 p-2 rounded border border-gray-100">
-                    {perfil.cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")}
-                 </div>
-               </div>
-               
-               <div>
-                 <label className="text-sm text-gray-500 font-medium">Posto Atual Vinculado</label>
-                 <div className="mt-1 font-semibold text-gray-900 bg-gray-50/50 p-2 rounded border border-gray-100 flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    {perfil.posto_atual}
-                 </div>
-               </div>
-
-               <div>
-                 <label className="text-sm text-gray-500 font-medium">Conta Criada Em</label>
-                 <div className="mt-1 font-semibold text-gray-900 bg-gray-50/50 p-2 rounded border border-gray-100">
-                    {perfil.data_criacao}
-                 </div>
-               </div>
-            </div>
-
+                {/* Badge de Nível à direita */}
+                <div className="sm:ml-auto mb-3 flex flex-wrap justify-center gap-3">
+                   <div className="badge-teal text-base font-bold px-5 py-2">{perfil?.nivel_acesso?.replace('_', ' ')}</div>
+                   {perfil?.posto_atual && (
+                     <div className="badge-teal text-base font-bold px-5 py-2 opacity-90 border-transparent bg-white/10 text-white">Lotação: {perfil?.posto_atual}</div>
+                   )}
+                </div>
+             </div>
           </div>
         </div>
-        
-      </div>
+
+        {/* Grid Dividido */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+          
+          {/* Card Detalhes Profissionais */}
+          <div className="card-dark p-8">
+             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                <svg className="w-5 h-5 text-[var(--teal-400)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" /></svg>
+                <h3 className="text-lg font-bold text-white">Ficha Profissional</h3>
+             </div>
+             
+             <div className="space-y-5">
+                <div>
+                   <label className="label-dark">Registro de Matrícula</label>
+                   <div className="input-dark py-3 opacity-60 cursor-not-allowed bg-black/20">
+                     {perfil?.matricula || '--'}
+                   </div>
+                </div>
+                <div>
+                   <label className="label-dark">Documento (CPF)</label>
+                   <div className="input-dark py-3 opacity-80 bg-black/20 text-white font-medium">
+                     {perfil?.cpf || 'Não informado'}
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Card Troca de Senha */}
+          <div className="card-dark p-8">
+             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                <svg className="w-5 h-5 text-[var(--teal-400)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <h3 className="text-lg font-bold text-white">Segurança / Credenciais</h3>
+             </div>
+
+             <form onSubmit={handleTrocaSenha} className="space-y-5">
+                <div>
+                   <label className="label-dark">Senha Atual</label>
+                   <input 
+                     type="password" 
+                     className="input-dark" 
+                     placeholder="Digite sua senha em uso"
+                     value={passwordForm.s_atual}
+                     onChange={e => setPasswordForm({...passwordForm, s_atual: e.target.value})}
+                     required 
+                   />
+                </div>
+                <div>
+                   <label className="label-dark">Nova Senha Forte</label>
+                   <input 
+                     type="password" 
+                     className="input-dark" 
+                     placeholder="Crie uma nova senha de acesso"
+                     value={passwordForm.s_nova}
+                     onChange={e => setPasswordForm({...passwordForm, s_nova: e.target.value})}
+                     required 
+                   />
+                </div>
+
+                {passMsg && (
+                  <div className={`p-3 rounded-lg text-sm font-medium border ${
+                    passMsg.includes('sucesso') 
+                      ? 'bg-[var(--teal-500)]/10 text-[var(--teal-300)] border-[var(--teal-500)]/20' 
+                      : 'bg-red-500/10 text-red-300 border-red-500/20'
+                  }`}>
+                    {passMsg}
+                  </div>
+                )}
+
+                <button type="submit" className="btn-primary w-full mt-2">
+                  Atualizar Senha
+                </button>
+             </form>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }

@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-// URL base da API
-const API_URL = "http://127.0.0.1:8000/api/";
+// URL base da API dinâmico para rodar em celulares ou outros PCs da rede local
+const API_URL = `http://${window.location.hostname}:8000/api/`;
 
 // Cria instância do axios
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api/' 
+  baseURL: API_URL 
 });
 
 // Interceptor de REQUEST - Adiciona o token automaticamente

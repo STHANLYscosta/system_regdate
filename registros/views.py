@@ -371,13 +371,23 @@ class DashboardStatsView(APIView):
             informacao=Count('id', filter=Q(tipo_atendimento='INFORMACAO'))
         ).order_by('-total')[:10]
 
+        mapa_postos = qs.exclude(posto__latitude__isnull=True).exclude(posto__longitude__isnull=True).values(
+            'posto__nome_posto', 'posto__latitude', 'posto__longitude'
+        ).annotate(
+            total=Count('id'),
+            emissao=Count('id', filter=Q(tipo_atendimento='EMISSAO')),
+            servico=Count('id', filter=Q(tipo_atendimento='SERVICO')),
+            informacao=Count('id', filter=Q(tipo_atendimento='INFORMACAO'))
+        )
+
         return Response({
             "total_periodo": total_periodo,
             "geral": stats_geral,
             "por_hora": list(por_hora),
             "por_dia": list(por_dia),
             "ranking_postos": list(ranking_postos),
-            "ranking_atendentes": list(ranking_atendentes)
+            "ranking_atendentes": list(ranking_atendentes),
+            "mapa_postos": list(mapa_postos)
         })# ==========================================
 # 4. GESTÃO DE PERMISSÕES (GERENTE)
 # ==========================================

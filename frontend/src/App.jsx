@@ -11,6 +11,7 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import GerenciarPostos from './pages/GerenciarPostos';
 import GerenciarPermissoes from './pages/GerenciarPermissoes';
 import Perfil from './pages/Perfil';
+import MapaPostos from './pages/MapaPostos';
 
 // Componente para proteger rotas (só acessa se estiver logado)
 const PrivateRoute = ({ children }) => {
@@ -40,6 +41,7 @@ function App() {
         <Route path="/postos" element={<RoleRoute allowedRoles={['GERENTE', 'SUPERVISOR']}><GerenciarPostos /></RoleRoute>} />
         <Route path="/permissoes" element={<RoleRoute allowedRoles={['GERENTE']}><GerenciarPermissoes /></RoleRoute>} />
         <Route path="/perfil" element={<PrivateRoute><Perfil /></PrivateRoute>} />
+        <Route path="/mapa-calor" element={<PrivateRoute><MapaPostos /></PrivateRoute>} />
         
         {/* Redireciona qualquer rota inexistente para o login */}
         <Route path="*" element={<Navigate to="/" />} />
