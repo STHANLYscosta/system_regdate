@@ -447,6 +447,16 @@ class UserProfileView(APIView):
 
     def put(self, request):
         user = request.user
+
+        if 'senha_atual' in request.data and 'nova_senha' in request.data:
+            senha_atual = request.data.get('senha_atual')
+            nova_senha = request.data.get('nova_senha')
+            if not user.check_password(senha_atual):
+                return Response({'erro': 'Senha atual incorreta.'}, status=status.HTTP_400_BAD_REQUEST)
+            user.set_password(nova_senha)
+            user.save()
+            return Response({'mensagem': 'Senha atualizada com sucesso.'}, status=status.HTTP_200_OK)
+
         if 'foto_perfil' in request.FILES:
             user.foto_perfil = request.FILES['foto_perfil']
         if 'foto_capa' in request.FILES:
@@ -454,7 +464,7 @@ class UserProfileView(APIView):
         user.save()
         
         return Response({
-            "mensagem": "Fotos atualizadas",
+            "mensagem": "Perfil atualizado",
             "foto_perfil": request.build_absolute_uri(user.foto_perfil.url) if user.foto_perfil else None,
             "foto_capa": request.build_absolute_uri(user.foto_capa.url) if user.foto_capa else None
         }, status=status.HTTP_200_OK)

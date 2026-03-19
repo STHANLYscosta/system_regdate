@@ -9,6 +9,13 @@ const TIPOS_CARTAO = [
   "SINETRAM", "P SOCIAL"
 ];
 
+const TIPOS_SERVICO = [
+  "ATUALIZAÇÃO DE FOTO", "TROCA DE E-MAIL", "VALIDAÇÃO DE RECARGA",
+  "VENDA JUSTIFICADA", "REVISÃO DE CRÉDITO", "JUNÇÃO DE CADASTRO",
+  "ATUALIZAÇÃO DE DATA DE COMPRA", "AGENDAMENTO EXPRESSO",
+  "DESBLOQUEIO DE CARTÃO", "CORREÇÃO DE SALDO", "SOLICITAÇÃO DE BLOQUEIO"
+];
+
 const TIPOS = [
   {
     id: 'EMISSAO',
@@ -54,7 +61,7 @@ const FormularioAtendimento = () => {
   const [tipoAtendimento, setTipoAtendimento] = useState('');
   const [formData, setFormData] = useState({
     cpf: '', telefone: '', email: '', nome: '', tipo_cartao: '',
-    cartao_impresso: false, via: '1ª', observacao: '',
+    cartao_impresso: '', via: '1ª', observacao: '',
     servico_realizado: '', informacao_passada: ''
   });
   const [mensagem, setMensagem] = useState({ texto: '', erro: false });
@@ -77,7 +84,7 @@ const FormularioAtendimento = () => {
     try {
       await api.post('registrar/', payload);
       setMensagem({ texto: '✅ Atendimento registrado com sucesso!', erro: false });
-      setFormData({ cpf: '', telefone: '', email: '', nome: '', tipo_cartao: '', cartao_impresso: false, via: '1ª', observacao: '', servico_realizado: '', informacao_passada: '' });
+      setFormData({ cpf: '', telefone: '', email: '', nome: '', tipo_cartao: '', cartao_impresso: '', via: '1ª', observacao: '', servico_realizado: '', informacao_passada: '' });
       setTimeout(() => setMensagem({ texto: '', erro: false }), 3500);
     } catch (error) {
       setMensagem({ texto: error.response?.data?.erro || 'Erro ao registrar atendimento.', erro: true });
@@ -102,7 +109,7 @@ const FormularioAtendimento = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
             </button>
-            <img src="/src/assets/images/logo.png" alt="Logo" className="w-8 h-8 object-contain" onError={(e) => e.target.style.display='none'} />
+            <img src="/src/assets/images/logo.png" alt="Logo" className="w-8 h-8 object-contain" onError={(e) => e.target.style.display = 'none'} />
             <div>
               <h1 className="text-xl font-bold leading-tight" style={{ color: 'var(--color-text-primary)' }}>Registrar Atendimento</h1>
               <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>Operador: {nome}</p>
@@ -120,16 +127,15 @@ const FormularioAtendimento = () => {
       </header>
 
       <main className="max-w-4xl mx-auto p-6 py-10">
-        
+
         {/* Seleção de Tipo */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {TIPOS.map(tipo => (
             <button key={tipo.id} type="button" onClick={() => setTipoAtendimento(tipo.id)}
-              className={`flex flex-col items-center gap-3 p-5 rounded-2xl font-semibold text-sm transition-all duration-200 hover:-translate-y-1 ${
-                tipoAtendimento === tipo.id
-                  ? 'text-white shadow-lg scale-[1.03]'
-                  : 'hover:scale-[1.01]'
-              }`}
+              className={`flex flex-col items-center gap-3 p-5 rounded-2xl font-semibold text-sm transition-all duration-200 hover:-translate-y-1 ${tipoAtendimento === tipo.id
+                ? 'text-white shadow-lg scale-[1.03]'
+                : 'hover:scale-[1.01]'
+                }`}
               style={tipoAtendimento === tipo.id
                 ? { background: 'linear-gradient(135deg, #0B8185, #1F5F61)', boxShadow: '0 8px 24px rgba(11,129,133,0.45)', border: '1px solid rgba(11,129,133,0.4)' }
                 : { background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'var(--color-text-secondary)' }
@@ -151,7 +157,7 @@ const FormularioAtendimento = () => {
         {/* Formulário */}
         {tipoAtendimento ? (
           <form onSubmit={handleSubmit} className="space-y-6 card-dark p-8">
-            
+
             {/* Dados Comuns */}
             <div>
               <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--teal-400)' }}>DADOS DO CIDADÃO</h3>
@@ -186,14 +192,21 @@ const FormularioAtendimento = () => {
                   </InputField>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <InputField label="Cartão Impresso (Nº)">
-                    <input type="text" name="cartao_impresso" value={formData.cartao_impresso} onChange={handleChange} className={inputClass} />
+                  <InputField label="Cartão Impresso (Nº) *">
+                    <input
+                      type="text"
+                      name="cartao_impresso"
+                      value={formData.cartao_impresso || ""}
+                      onChange={handleChange}
+                      className={inputClass}
+                      placeholder="58.00.00000000-00 (Cartão completo)"
+                      required
+                    />
                   </InputField>
                   <InputField label="Via *">
                     <select name="via" value={formData.via} onChange={handleChange} required className={selectClass}>
                       <option value="1ª">1ª Via</option>
                       <option value="2ª">2ª Via</option>
-                      <option value="3ª+">3ª Via ou mais</option>
                     </select>
                   </InputField>
                 </div>
@@ -206,9 +219,18 @@ const FormularioAtendimento = () => {
             {/* Campos Serviço */}
             {tipoAtendimento === 'SERVICO' && (
               <div>
-                <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--teal-400)' }}>DESCRIÇÃO DO SERVIÇO</h3>
-                <InputField label="Serviço Realizado *">
-                  <textarea name="servico_realizado" value={formData.servico_realizado} onChange={handleChange} required maxLength="200" rows="4" className={inputClass} placeholder="Descreva o serviço realizado..." />
+                <h3 className="text-sm font-bold mb-4" style={{ color: 'var(--teal-400)' }}>DADOS DO SERVIÇO</h3>
+                <InputField label="Serviço Realizado (Máx 200 caracteres) *">
+                  <textarea 
+                    name="servico_realizado" 
+                    value={formData.servico_realizado} 
+                    onChange={handleChange} 
+                    required 
+                    maxLength="200" 
+                    rows="3" 
+                    className={inputClass} 
+                    placeholder="Descreva brevemente o serviço prestado..." 
+                  />
                 </InputField>
               </div>
             )}

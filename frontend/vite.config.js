@@ -7,4 +7,7 @@ export default defineConfig({
     react(),
     tailwindcss(), // << ATIVA O TAILWIND 4
   ],
+  server: {
+    host: true,
+  },
 })

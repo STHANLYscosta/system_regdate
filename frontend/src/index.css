@@ -117,6 +117,13 @@
     cursor: not-allowed;
   }
 
+  /* Fix options bg color on selects */
+  select.input-dark option,
+  .selectClass option {
+    background-color: var(--dark-800);
+    color: var(--color-text-primary);
+  }
+
   /* Header interno padrão */
   .app-header {
     background: rgba(30, 24, 18, 0.92);

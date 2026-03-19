@@ -77,101 +77,106 @@ export default function MapaPostos() {
   };
 
   return (
-    <div className="min-h-screen page-bg pb-10 hide-scrollbar flex flex-col">
-      <header className="app-header z-20">
-        <div className="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen pb-24 font-sans text-gray-900">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header Title */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/dashboard')}
-              className="p-2 rounded-xl transition-all hover:scale-105 active:scale-95 group"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}>
-              <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform text-[var(--teal-300)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
-            <div className="hidden sm:block">
-              <svg className="w-8 h-8 text-[var(--teal-400)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-               <h1 className="text-xl font-bold text-white leading-tight">Mapa de Calor Analítico</h1>
-               <p className="text-sm text-[var(--color-text-secondary)] mt-0.5">Bolhas proporcionais de produtividade.</p>
-            </div>
+             <button 
+               onClick={() => navigate('/dashboard')}
+               className="p-2.5 rounded-full bg-white border border-gray-200 text-gray-500 hover:text-gray-900 shadow-sm transition-all hover:scale-105 active:scale-95 group"
+             >
+                <svg className="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+             </button>
+             <div>
+               <h1 className="text-3xl font-black text-gray-900 tracking-tight">Mapa de Calor Analítico</h1>
+               <p className="text-gray-500 text-sm mt-0.5 font-medium">Bolhas proporcionais de produtividade nos locais de atendimento.</p>
+             </div>
           </div>
           {isLoading && (
-            <div className="w-6 h-6 border-2 border-[var(--teal-500)] border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 rounded-full border-4 border-gray-200 border-t-blue-600 animate-spin"></div>
           )}
         </div>
-      </header>
 
-      <main className="max-w-[1400px] mx-auto w-full px-6 mt-6 flex-1 flex flex-col gap-6 relative">
-        {/* Toolbar Dark Igual dos Painéis Geenciais */}
-        <div className="bg-[var(--dark-800)] p-4 rounded-2xl border border-white/5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-y-4 gap-x-4 items-end z-[40]">
+        {/* Toolbar de Filtros */}
+        <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-y-5 gap-x-4 items-end z-20 relative">
           
           <div className="flex flex-col">
-            <span className="label-dark mb-1">Período De</span>
+            <span className="text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Período De</span>
             <input 
               type="date" 
-              className="input-dark py-2 outline-none"
+              className="border border-gray-200 rounded-lg p-2 text-sm text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 h-[42px] transition outline-none cursor-pointer"
               value={dataInicio}
               onChange={(e) => setDataInicio(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col">
-            <span className="label-dark mb-1">Período Até</span>
+            <span className="text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider">Período Até</span>
             <input 
               type="date" 
-              className="input-dark py-2 outline-none"
+              className="border border-gray-200 rounded-lg p-2 text-sm text-gray-700 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-blue-500 h-[42px] transition outline-none cursor-pointer"
               value={dataFim}
               onChange={(e) => setDataFim(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col relative z-[60]">
-            <span className="label-dark mb-1">Filtrar Postos</span>
-            <div className="h-[40px] bg-black/20 rounded-lg">
-              <MultiSelect
-                options={postosOptions}
-                selected={selectedPostos}
-                onChange={setSelectedPostos}
-                placeholder="Todos Filtros..."
-              />
-            </div>
+            <span className="text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+              <svg className="w-3 h-3 text-blue-500" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd"/></svg>
+              Filtrar Postos
+            </span>
+            <MultiSelect
+              options={postosOptions}
+              selectedValues={selectedPostos}
+              onChange={setSelectedPostos}
+              placeholder="Todos os Filtros..."
+            />
           </div>
 
           <div className="flex flex-col relative z-[50]">
-            <span className="label-dark mb-1">Tipos de Serviço</span>
-            <div className="h-[40px] bg-black/20 rounded-lg">
-              <MultiSelect
-                options={TIPOS_OPTIONS}
-                selected={selectedTipos}
-                onChange={setSelectedTipos}
-                placeholder="Todos Tipos..."
-              />
-            </div>
+            <span className="text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+               <svg className="w-3 h-3 text-orange-500" fill="currentColor" viewBox="0 0 20 20"><path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/></svg>
+               Tipos de Serviço
+            </span>
+            <MultiSelect
+              options={TIPOS_OPTIONS}
+              selectedValues={selectedTipos}
+              onChange={setSelectedTipos}
+              placeholder="Todos Tipos..."
+            />
           </div>
 
           <div className="flex flex-col relative z-[40]">
-            <span className="label-dark mb-1">Atendentes</span>
-            <div className="h-[40px] bg-black/20 rounded-lg">
-              <MultiSelect
-                options={atendentesOptions}
-                selected={selectedAtendentes}
-                onChange={setSelectedAtendentes}
-                placeholder="Todos Operadores..."
-              />
-            </div>
+            <span className="text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+               <svg className="w-3 h-3 text-purple-500" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+               Atendentes
+            </span>
+            <MultiSelect
+              options={atendentesOptions}
+              selectedValues={selectedAtendentes}
+              onChange={setSelectedAtendentes}
+              placeholder="Todos Operadores..."
+            />
           </div>
         </div>
 
         {/* Quadro do Mapa */}
-        <div className="relative w-full flex-1 min-h-[500px] glass-dark rounded-3xl overflow-hidden border border-white/10 shadow-2xl p-1 z-10">
+        <div className="bg-white p-2 sm:p-4 rounded-2xl shadow-sm border border-gray-100 relative w-full flex-1 h-[600px] min-h-[500px] overflow-hidden z-10">
            {stats && stats.mapa_postos ? (
-             <MapContainer center={getMapCenter()} zoom={12} className="w-full h-full rounded-[1.4rem] bg-[var(--dark-900)]" zoomControl={true}>
-               {/* CartoDark Base Map */}
+             <MapContainer 
+               center={getMapCenter()} 
+               zoom={12} 
+               className="w-full h-full rounded-xl bg-gray-50 z-0" 
+               style={{ minHeight: '100%', height: '100%', width: '100%' }}
+               zoomControl={true}
+             >
+               {/* CartoLight Base Map (White/Light theme) */}
                <TileLayer
-                  url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                  url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                />
 
@@ -196,18 +201,18 @@ export default function MapaPostos() {
                        center={[lat, lng]} 
                        radius={radius}
                        pathOptions={{ 
-                         fillColor: 'var(--teal-500)', 
-                         color: 'var(--teal-300)', 
+                         fillColor: '#3b82f6', // blue-500
+                         color: '#2563eb', // blue-600
                          weight: 2, 
                          fillOpacity: 0.45 + (peso * 0.35) 
                        }}
                      >
                        <Tooltip direction="top" className="bg-white text-gray-900 border-none shadow-xl rounded-xl custom-leaflet-tooltip p-0 opacity-100">
                          <div className="min-w-[200px] pointer-events-none">
-                           <div className="bg-[var(--teal-500)] text-white px-3 py-2 rounded-t-lg font-black text-sm">
+                           <div className="bg-blue-600 text-white px-3 py-2 rounded-t-lg font-black text-sm border-b border-blue-700">
                               {posto.posto__nome_posto}
                            </div>
-                           <div className="p-3 bg-white rounded-b-lg">
+                           <div className="p-3 bg-white rounded-b-lg border border-gray-100 border-t-0">
                              <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-sm font-medium mb-3">
                                <div className="text-gray-500">Emissão:</div>
                                <div className="font-bold text-blue-600 text-right">{posto.emissao}</div>
@@ -230,13 +235,13 @@ export default function MapaPostos() {
                
              </MapContainer>
            ) : (
-             <div className="w-full h-full flex flex-col items-center justify-center text-white/50 space-y-4">
-                 <div className="w-10 h-10 border-4 border-[var(--teal-500)] border-t-transparent rounded-full animate-spin"></div>
-                 <p className="font-medium animate-pulse">Cruzando geolocalizações no DB...</p>
+             <div className="w-full h-full flex flex-col items-center justify-center text-gray-500 space-y-4 bg-gray-50 rounded-xl">
+                 <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                 <p className="font-bold animate-pulse">Cruzando geolocalizações no DB...</p>
              </div>
            )}
         </div>
-      </main>
+      </div>
 
       {/* Helper Inject Custom CSS Tooltip */}
       <style dangerouslySetInnerHTML={{__html:`
